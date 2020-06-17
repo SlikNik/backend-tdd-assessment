@@ -150,6 +150,23 @@ class TestEcho(unittest.TestCase):
         assert output, "The program did not print anything."
         self.assertEqual(output[0], "Hello")
 
+    def test_multiple(self):
+        """Check if short option '-lut', '-tul', '-utl', and '-ul' performs correctly"""
+        args1 = ["-lut", "heLLo!"]
+        args2 = ["-tul", "heLLo!"]
+        args3 = ["-utl", "heLLo!"]
+        args4 = ["-ul", "heLLo!"]
+        with Capturing() as output1:
+            self.module.main(args1)
+            self.module.main(args2)
+            self.module.main(args3)
+        with Capturing() as output2:
+            self.module.main(args4)
+        assert output1, "The program did not print anything."
+        self.assertEqual(output1[0], "Hello!")
+        assert output2, "The program did not print anything."
+        self.assertEqual(output2[0], "hello!")
+
     def test_no_args(self):
         """Check if short option '-l' performs lowercasing"""
         args = ["hello world"]
