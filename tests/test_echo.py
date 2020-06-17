@@ -7,7 +7,7 @@ Students are expected to edit this module, to add more tests to run
 against the 'echo.py' program.
 """
 
-__author__ = "???"
+__author__ = "Nikal Morgan"
 
 import sys
 import importlib
@@ -16,6 +16,7 @@ import argparse
 import unittest
 import subprocess
 from io import StringIO
+from echo import *
 
 # devs: change this to 'soln.echo' to run this suite against the solution
 PKG_NAME = 'echo'
@@ -79,18 +80,14 @@ class TestEcho(unittest.TestCase):
         """Called by parent class ONCE before all tests are run"""
         # your code here - use this space to create any instance variables
         # that will be visible to your other test methods
-        pass
-
+        self.parser = self.module.create_parser()
+ 
     def test_parser(self):
         """Check if create_parser() returns a parser object"""
         result = self.module.create_parser()
         self.assertIsInstance(
             result, argparse.ArgumentParser,
             "create_parser() function is not returning a parser object")
-
-    #
-    # Students: add more parser tests here
-    #
 
     def test_echo(self):
         """Check if main() function prints anything at all"""
@@ -106,17 +103,77 @@ class TestEcho(unittest.TestCase):
             "The program is not performing simple echo"
             )
 
-    def test_lower_short(self):
+    def test_help(self):
+        """Running the program without arguments should show usage."""
+        # Run the command `python ./echo.py -h` in a separate process, then
+        # collect its output.
+        process1 = subprocess.Popen(
+            ["python", "./echo.py", "-h"],
+            stdout=subprocess.PIPE)
+        stdout1, _ = process1.communicate()
+        process2 = subprocess.Popen(
+            ["python", "./echo.py", "--help"],
+            stdout=subprocess.PIPE)
+        stdout2, _ = process2.communicate()
+        with open("USAGE") as f:
+            usage = f.read()
+        self.assertEqual(stdout2.decode(), usage)
+        self.assertEqual(stdout1.decode(), usage)
+       
+    def test_lower(self):
+        """Check if short option '-l' and '--lower' performs lowercasing"""
+        args1 = ["-l", "HELLO WORLD"]
+        args2 = ["--lower", "HELLO WORLD"]
+        with Capturing() as output:
+            self.module.main(args1)
+            self.module.main(args2)
+        assert output, "The program did not print anything."
+        self.assertEqual(output[0], "hello world")
+    
+    def test_upper(self):
+        """Check if short option '-u' and '--upper' performs lowercasing"""
+        args1 = ["-u", "hello world"]
+        args2 = ["--upper", "hello world"]
+        with Capturing() as output:
+            self.module.main(args1)
+            self.module.main(args2)
+        assert output, "The program did not print anything."
+        self.assertEqual(output[0], "HELLO WORLD")
+
+    def test_title(self):
+        """Check if short option '-t' and '--title' performs lowercasing"""
+        args1 = ["-t", "hello"]
+        args2 = ["--title", "hello"]
+        with Capturing() as output:
+            self.module.main(args1)
+            self.module.main(args2)
+        assert output, "The program did not print anything."
+        self.assertEqual(output[0], "Hello")
+
+    def test_multiple(self):
+        """Check if short option '-lut', '-tul', '-utl', and '-ul' performs correctly"""
+        args1 = ["-lut", "heLLo!"]
+        args2 = ["-tul", "heLLo!"]
+        args3 = ["-utl", "heLLo!"]
+        args4 = ["-ul", "heLLo!"]
+        with Capturing() as output1:
+            self.module.main(args1)
+            self.module.main(args2)
+            self.module.main(args3)
+        with Capturing() as output2:
+            self.module.main(args4)
+        assert output1, "The program did not print anything."
+        self.assertEqual(output1[0], "Hello!")
+        assert output2, "The program did not print anything."
+        self.assertEqual(output2[0], "hello!")
+
+    def test_no_args(self):
         """Check if short option '-l' performs lowercasing"""
-        args = ["-l", "HELLO WORLD"]
+        args = ["hello world"]
         with Capturing() as output:
             self.module.main(args)
         assert output, "The program did not print anything."
         self.assertEqual(output[0], "hello world")
-
-    #
-    # Students: add more cmd line options tests here.
-    #
 
 
 if __name__ == '__main__':
